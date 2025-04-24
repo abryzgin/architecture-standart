@@ -1,0 +1,26 @@
+# VS
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# IDEA
+.idea/
+*.iml
+*.iws
+out/
+
+# Build results
+bin/
+obj/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Description folder
+description/
