@@ -1,0 +1,27 @@
+@startuml C2_Rates
+'— C4-PlantUML, контейнеры —
+!includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+LAYOUT_WITH_LEGEND()
+
+Container_Boundary(distSrv, "Rate Distribution Service\n(Spring Boot)") {
+    Container(listener, "AMQP Listener",        "Java", "Слушает RabbitMQ событие RateChanged")
+    Container(restPush, "Internal Push Adapter", "Java", "PUT /rates во внутренний КЦ + retry")
+    Container(csvGen,   "CSV Generator",         "Java", "Формирует CSV по шаблону")
+    Container(sftpUp,   "SFTP Uploader",         "Java", "SSH-ключ, atomic rename, retry")
+    ContainerDb(auditDb, "Audit DB",              "MS SQL", "Хранит журнал отправок 1 год")
+}
+
+System(rateSrv,   "Rate Service", "")
+System(ccPlat,    "Платформа внутреннего КЦ", "")
+System_Ext(sftp,  "SFTP-сервер партнёра", "")
+
+Rel(rateSrv, listener,    "AMQP (topic rates.v1)")
+Rel(listener, restPush,   "queue")
+Rel(listener, csvGen,     "queue")
+Rel(restPush, ccPlat,     "HTTPS PUT /rates")
+Rel(csvGen,   sftpUp,     "CSV-файл")
+Rel(sftpUp,   sftp,       "SFTP (SSH v2)")
+Rel(restPush, auditDb,    "insert status")
+Rel(sftpUp,   auditDb,    "insert status")
+
+@enduml

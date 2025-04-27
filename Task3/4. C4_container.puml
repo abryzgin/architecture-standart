@@ -1,0 +1,38 @@
+@startuml C2
+!include <C4/C4_Container>
+
+Person(customer, "Клиент")
+
+System_Boundary(ib, "Интернет-банк (монолит)") {
+    Container(ib_ui, "IB UI", "Razor / JS")
+    Container(ib_srv, "IB Server", ".NET 4.5")
+}
+
+Container(website_fe, "Website FE", "React")
+Container(website_be, "Website BE", "PHP (Laravel)")
+
+System_Boundary(ms_bnd, "Deposit MS") {
+    Container(ms_gateway, "Deposit Gateway", "Spring Boot", "REST facade + saga")
+    Container(rate_srv, "Rate Service", "Spring Boot", "Кэш + расчёт ставки")
+    Container(otp_srv, "OTP Service", "Spring Boot", "HSM/Redis")
+}
+
+Container(api_gw, "API-Gateway / MQ Broker", "Kong + RabbitMQ")
+Container(ccp, "Call-center Platform", "Java micro-services")
+ContainerDb(abs, "ABS", "Oracle + PL/SQL")
+Container(sms_gw, "SMS-шлюз", "HTTP-SMPP")
+
+Rel(customer, website_fe, "HTTPS")
+Rel(customer, ib_ui, "HTTPS")
+Rel(website_fe, website_be, "REST")
+Rel(website_be, api_gw, "POST /leads")
+Rel(ib_ui, ib_srv, "SOAP")
+Rel(ib_srv, api_gw, "POST /deposit-app\nGET /rates")
+Rel(api_gw, ms_gateway, "REST + AMQP")
+Rel(api_gw, ccp, "AMQP event")
+Rel(ms_gateway, rate_srv, "gRPC")
+Rel(rate_srv, abs, "SQL (read-only)")
+Rel(ms_gateway, abs, "SQL (write)")
+Rel(ms_gateway, sms_gw, "REST SMS")
+Rel(otp_srv, sms_gw, "REST OTP")
+@enduml

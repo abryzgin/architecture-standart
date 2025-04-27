@@ -1,0 +1,25 @@
+@startuml C1_Rates
+'— C4-PlantUML, контекст —
+!includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+LAYOUT_WITH_LEGEND()
+
+Person(backoffice, "Back-office депозитов")
+Person(ccOp,       "Оператор внутреннего КЦ")
+Person(extOp,      "Оператор партнёрского КЦ")
+
+System_Ext(abs,   "АБС\n(Oracle, PL/SQL)")
+System(rateSrv,   "Rate Service\n(Java)")
+System(distSrv,   "Rate Distribution Service\n(Spring Boot)")
+System(ccPlat,    "Платформа внутреннего КЦ\n(Java, micro-services)")
+System_Ext(sftp,  "SFTP-сервер партнёра")
+System_Ext(extCc, "Система партнёрского КЦ\n(внешняя)")
+
+Rel(backoffice, abs,      "Сохраняет/меняет ставку")
+Rel(abs,        rateSrv,  "DB-notify")
+Rel(rateSrv,    distSrv,  "Event «RateChanged» (RabbitMQ/AMQP)")
+Rel(distSrv,    ccPlat,   "REST PUT /rates (JSON)")
+Rel(distSrv,    sftp,     "CSV-файл → SFTP")
+Rel(sftp,       extCc,    "Чтение/парсинг файла")
+Rel(ccOp,       ccPlat,   "GUI")
+Rel(extOp,      extCc,    "GUI")
+@enduml
