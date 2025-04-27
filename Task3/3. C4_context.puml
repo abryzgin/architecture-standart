@@ -1,0 +1,24 @@
+@startuml
+!include <C4/C4_Context>
+
+Person(customer, "Клиент")
+Person(agent, "Оператор call-центра")
+
+System(website, "Website", "PHP + React")
+System_Ext(sms, "SMS-шлюз")
+System_Ext(abs, "АБС")
+System(ib, "Интернет-банк", "ASP.NET MVC 4.5")
+System(ccp, "Call-center Platform", "Java micro-services")
+System(api, "Integration Bus / API-Gateway", "REST + MQ")
+System(ms, "Micro-сервисы депозитов", "Java/Spring Boot")
+
+Rel(customer, website, "HTTPS")
+Rel(customer, ib, "HTTPS")
+Rel(website, api, "REST - NewLead")
+Rel(ib, api, "REST - DepositApplication / Rate")
+Rel(api, ccp, "MQ event")
+Rel(agent, ccp, "Web UI")
+Rel(api, ms, "MQ / REST")
+Rel(ms, abs, "JDBC / PL-SQL\n(throttled)")
+Rel(ms, sms, "REST - OTP/SMS")
+@enduml
